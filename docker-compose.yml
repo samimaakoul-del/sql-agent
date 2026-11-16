@@ -1,8 +1,14 @@
-# Lancement complet en une commande :   docker compose up -d --build
-#   Interface : http://localhost:8501
-#   API       : http://localhost:8000/docs
+# Deux façons de lancer, en une commande :
 #
-# Les ports côté PC sont modifiables dans un fichier .env (voir .env.example).
+#   A) Machine vierge (tout dans Docker, ~6 Go de RAM pour Docker conseillés) :
+#        docker compose --profile ollama up -d --build
+#
+#   B) Ollama déjà installé sur le PC (plus léger, recommandé si peu de RAM) :
+#        dans .env :  OLLAMA_URL=http://host.docker.internal:11434
+#        docker compose up -d --build
+#
+#   Interface : http://localhost:8501      API : http://localhost:8000/docs
+#   Ports et modèle modifiables dans un fichier .env (voir .env.example).
 
 services:
   # --- Base PostgreSQL de démo (pg_stat_statements + HypoPG) ---
@@ -28,9 +34,10 @@ services:
       timeout: 3s
       retries: 20
 
-  # --- LLM local ---
+  # --- LLM local (option A : seulement avec --profile ollama) ---
   ollama:
     image: ollama/ollama:latest
+    profiles: ["ollama"]
     volumes:
       - ollama:/root/.ollama
     healthcheck:
@@ -42,6 +49,7 @@ services:
   # Télécharge le modèle une seule fois (gardé dans le volume « ollama »), puis s'arrête.
   ollama-pull:
     image: ollama/ollama:latest
+    profiles: ["ollama"]
     environment:
       OLLAMA_HOST: http://ollama:11434
     entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen2.5-coder:3b}"]
@@ -55,8 +63,10 @@ services:
     build: .
     environment:
       DATABASE_URL: postgresql://agent_ro:agent_ro@db:5432/shop   # rôle LECTURE SEULE
-      OLLAMA_URL: http://ollama:11434
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5-coder:3b}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # accès à l'Ollama du PC (option B), aussi sous Linux
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
@@ -64,6 +74,7 @@ services:
         condition: service_healthy
       ollama:
         condition: service_healthy
+        required: false   # absent en option B : on n'attend pas
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
