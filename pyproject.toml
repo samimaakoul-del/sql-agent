@@ -17,6 +17,10 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "--cov=sql_agent --cov-report=term-missing"
 
+[tool.coverage.run]
+# L'interface Streamlit est testée à la main (démo), pas par pytest
+omit = ["*/sql_agent/ui/app.py"]
+
 # --- Style (D1) ---
 [tool.ruff]
 line-length = 100
