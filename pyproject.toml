@@ -1,0 +1,32 @@
+[project]
+name = "sql-agent"
+version = "0.1.0"
+description = "Agent qui repère, explique et corrige les requêtes SQL lentes sans toucher à la base de production."
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# --- Tests (D1) ---
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--cov=sql_agent --cov-report=term-missing"
+
+# --- Style (D1) ---
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+# --- Typage (D1) ---
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+strict = true
