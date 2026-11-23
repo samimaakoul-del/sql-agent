@@ -8,6 +8,42 @@ Projet n°11 – un agent qui aide les développeurs et les DBA à **repérer, e
 - Ahmed Sami Maakoul
 - Youssef Agoub
 
+## Lancer l'application (Docker, une commande)
+
+Prérequis : Docker Desktop (ou Docker Engine + Compose v2).
+
+**Option A – tout dans Docker** (machine avec ≥ 6 Go de RAM alloués à Docker) :
+
+```bash
+docker compose --profile ollama up -d --build
+```
+
+**Option B – Ollama déjà installé sur le PC** (recommandé si peu de RAM) :
+
+```bash
+copy .env.example .env          # puis décommenter la ligne OLLAMA_URL=http://host.docker.internal:11434
+ollama pull qwen2.5-coder:3b
+docker compose up -d --build
+```
+
+Puis ouvrir :
+- Interface : http://localhost:8501
+- API (documentation) : http://localhost:8000/docs
+
+Le premier lancement télécharge les images et le modèle (~2 Go) : compter 5 à 15 minutes.
+
+| Service | Rôle | Port PC |
+|---|---|---|
+| `db` | PostgreSQL 16 + pg_stat_statements + HypoPG (base de démo) | 5433 |
+| `api` | L'agent (FastAPI), connecté à la base avec le rôle **lecture seule** `agent_ro` | 8000 |
+| `ui` | Interface Streamlit | 8501 |
+| `ollama` | LLM local (option A uniquement) | – |
+
+## Limites connues
+
+- **LLM sur processeur** : sans carte graphique, `qwen2.5-coder:3b` répond en ~17 s (modèle chargé) et ~60 s au premier appel (mesuré sur un PC 8 Go de RAM, sans GPU).
+- **Ollama dans Docker avec peu de RAM** : sous Windows, Docker Desktop ne reçoit par défaut que la moitié de la RAM. Avec 8 Go au total (3,7 Go pour Docker), le conteneur Ollama n'arrive pas à charger le modèle → utiliser l'option B.
+
 ## Lancer en développement (sans Docker)
 
 ```bash
