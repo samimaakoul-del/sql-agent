@@ -1,0 +1,92 @@
+{
+  "description": "Catalogue de requêtes de la base de démo. Les requêtes 'slow' sont annotées (cause + index attendu) : elles servent de vérité terrain pour l'évaluation (C1 à C3).",
+  "causes": {
+    "index_manquant": "Filtre sur une colonne sans index : parcours complet de la table (Seq Scan).",
+    "jointure_inefficace": "Jointure sur une clé étrangère non indexée.",
+    "tri_sans_index": "ORDER BY ... LIMIT sans index : toute la table est lue puis triée.",
+    "fonction_sur_colonne": "Une fonction appliquée à la colonne empêche l'utilisation d'un index classique.",
+    "cast_empeche_index": "Une conversion de type sur la colonne empêche l'utilisation d'un index : réécrire en intervalle.",
+    "joker_en_tete": "LIKE '%...' : un index B-tree ne peut pas aider (il faudrait pg_trgm)."
+  },
+  "queries": [
+    {
+      "id": "S01",
+      "slow": true,
+      "sql": "SELECT * FROM orders WHERE customer_id = 4242",
+      "cause": "index_manquant",
+      "expected_indexes": ["orders(customer_id)"]
+    },
+    {
+      "id": "S02",
+      "slow": true,
+      "sql": "SELECT id, full_name FROM customers WHERE email = 'client50000@example.com'",
+      "cause": "index_manquant",
+      "expected_indexes": ["customers(email)"]
+    },
+    {
+      "id": "S03",
+      "slow": true,
+      "sql": "SELECT count(*) FROM orders WHERE status = 'pending' AND created_at >= now() - interval '7 days'",
+      "cause": "index_manquant",
+      "expected_indexes": ["orders(status, created_at)", "orders(created_at)"]
+    },
+    {
+      "id": "S04",
+      "slow": true,
+      "sql": "SELECT * FROM order_items WHERE product_id = 77",
+      "cause": "index_manquant",
+      "expected_indexes": ["order_items(product_id)"]
+    },
+    {
+      "id": "S05",
+      "slow": true,
+      "sql": "SELECT c.email, o.id, o.total FROM customers c JOIN orders o ON o.customer_id = c.id WHERE c.email = 'client777@example.com'",
+      "cause": "jointure_inefficace",
+      "expected_indexes": ["customers(email)", "orders(customer_id)"]
+    },
+    {
+      "id": "S06",
+      "slow": true,
+      "sql": "SELECT oi.* FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.customer_id = 123",
+      "cause": "jointure_inefficace",
+      "expected_indexes": ["orders(customer_id)", "order_items(order_id)"]
+    },
+    {
+      "id": "S07",
+      "slow": true,
+      "sql": "SELECT id, customer_id, total FROM orders ORDER BY created_at DESC LIMIT 20",
+      "cause": "tri_sans_index",
+      "expected_indexes": ["orders(created_at)"]
+    },
+    {
+      "id": "S08",
+      "slow": true,
+      "sql": "SELECT id, full_name FROM customers WHERE lower(email) = 'client1234@example.com'",
+      "cause": "fonction_sur_colonne",
+      "expected_indexes": ["customers(lower(email))"]
+    },
+    {
+      "id": "S09",
+      "slow": true,
+      "sql": "SELECT count(*) FROM orders WHERE created_at::date = current_date - 30",
+      "cause": "cast_empeche_index",
+      "expected_indexes": ["orders(created_at)"],
+      "expected_rewrite": "SELECT count(*) FROM orders WHERE created_at >= current_date - 30 AND created_at < current_date - 29"
+    },
+    {
+      "id": "S10",
+      "slow": true,
+      "sql": "SELECT id, email FROM customers WHERE email LIKE '%9999@example.com'",
+      "cause": "joker_en_tete",
+      "expected_indexes": []
+    },
+    { "id": "F01", "slow": false, "sql": "SELECT * FROM orders WHERE id = 500000" },
+    { "id": "F02", "slow": false, "sql": "SELECT * FROM customers WHERE id = 42" },
+    { "id": "F03", "slow": false, "sql": "SELECT * FROM products WHERE id = 10" },
+    { "id": "F04", "slow": false, "sql": "SELECT * FROM order_items WHERE id = 1000000" },
+    { "id": "F05", "slow": false, "sql": "SELECT count(*) FROM products" },
+    { "id": "F06", "slow": false, "sql": "SELECT name, price FROM products WHERE category = 'livres' LIMIT 10" },
+    { "id": "F07", "slow": false, "sql": "SELECT o.id, c.email FROM orders o JOIN customers c ON c.id = o.customer_id WHERE o.id = 123456" },
+    { "id": "F08", "slow": false, "sql": "SELECT status, total FROM orders WHERE id BETWEEN 1000 AND 1010" }
+  ]
+}

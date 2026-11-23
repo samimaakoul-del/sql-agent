@@ -81,6 +81,19 @@ services:
       timeout: 5s
       retries: 10
 
+  # --- Générateur de trafic de démo (lancé à la demande) ---
+  #   docker compose run --rm workload
+  # Joue « l'application » : compte admin, séparé de l'agent (lecture seule).
+  workload:
+    build: .
+    profiles: ["demo"]
+    command: ["python", "-m", "sql_agent.demo.workload"]
+    environment:
+      WORKLOAD_DATABASE_URL: postgresql://admin:admin@db:5432/shop
+    depends_on:
+      db:
+        condition: service_healthy
+
   # --- Interface web ---
   ui:
     build: .
