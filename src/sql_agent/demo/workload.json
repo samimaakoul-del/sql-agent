@@ -1,5 +1,5 @@
 {
-  "description": "Catalogue de requêtes de la base de démo. Les requêtes 'slow' sont annotées (cause + index attendu) : elles servent de vérité terrain pour l'évaluation (C1 à C3).",
+  "description": "Catalogue de requêtes de la base de démo. Les requêtes 'slow' sont annotées (cause + index attendu) : elles servent de vérité terrain pour l'évaluation (C1 à C3). expected_indexes = tous nécessaires ; acceptable_indexes = alternative suffisante à elle seule.",
   "causes": {
     "index_manquant": "Filtre sur une colonne sans index : parcours complet de la table (Seq Scan).",
     "jointure_inefficace": "Jointure sur une clé étrangère non indexée.",
@@ -28,7 +28,8 @@
       "slow": true,
       "sql": "SELECT count(*) FROM orders WHERE status = 'pending' AND created_at >= now() - interval '7 days'",
       "cause": "index_manquant",
-      "expected_indexes": ["orders(status, created_at)", "orders(created_at)"]
+      "expected_indexes": ["orders(status, created_at)"],
+      "acceptable_indexes": ["orders(created_at)"]
     },
     {
       "id": "S04",

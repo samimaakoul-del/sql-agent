@@ -32,8 +32,21 @@ class CatalogQuery:
     sql: str
     slow: bool
     cause: str | None = None
-    expected_indexes: list[str] = field(default_factory=list)
+    expected_indexes: list[str] = field(default_factory=list)  # tous nécessaires
+    acceptable_indexes: list[str] = field(default_factory=list)  # un seul suffit
     expected_rewrite: str | None = None
+
+    def indexes_match(self, proposed: set[str]) -> bool:
+        """Les index proposés correspondent-ils à l'annotation ?
+
+        - aucun index attendu (ex. LIKE '%...') : rien ne doit être proposé ;
+        - sinon : tous les index attendus, ou au moins une alternative acceptable.
+        """
+        if not self.expected_indexes:
+            return not proposed
+        return set(self.expected_indexes) <= proposed or bool(
+            set(self.acceptable_indexes) & proposed
+        )
 
 
 def load_catalog() -> list[CatalogQuery]:

@@ -6,13 +6,14 @@ Documentation auto : http://localhost:8000/docs
 
 from collections.abc import Iterator
 from dataclasses import asdict
-from typing import Annotated
+from typing import Annotated, Any
 
 import psycopg
 from fastapi import Depends, FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 from sql_agent import __version__
+from sql_agent.analyzer import AnalysisError, analyze
 from sql_agent.collector import fetch_slow_queries
 from sql_agent.collector.slow_queries import OrderBy
 from sql_agent.db import connect
@@ -78,3 +79,60 @@ def slow_queries(
             detail="Extension pg_stat_statements absente de la base.",
         ) from exc
     return [SlowQueryOut(**asdict(q)) for q in found]
+
+
+class AnalyzeIn(BaseModel):
+    sql: str
+
+
+class FindingOut(BaseModel):
+    rule: str
+    table: str | None
+    message: str
+    candidate: str | None
+    candidate_ddl: str | None
+
+
+class DiagnosisOut(BaseModel):
+    query: str
+    analyzed_query: str
+    total_cost: float
+    primary_cause: str | None
+    findings: list[FindingOut]
+    candidates: list[str]
+    candidates_ddl: list[str]
+    rewrite_hint: str | None
+    plan: dict[str, Any]
+
+
+@app.post("/analyze", response_model=DiagnosisOut)
+def analyze_query(body: AnalyzeIn, conn: Connection) -> DiagnosisOut:
+    """F2 – Lit le plan EXPLAIN (sans exécuter la requête) et diagnostique le problème.
+
+    Accepte une requête avec ses valeurs, ou normalisée ($1, $2…) depuis /slow-queries.
+    Les index renvoyés sont des **propositions** : rien n'est créé.
+    """
+    try:
+        d = analyze(conn, body.sql)
+    except AnalysisError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return DiagnosisOut(
+        query=d.query,
+        analyzed_query=d.analyzed_query,
+        total_cost=d.total_cost,
+        primary_cause=d.primary_cause,
+        findings=[
+            FindingOut(
+                rule=f.rule,
+                table=f.table,
+                message=f.message,
+                candidate=str(f.candidate) if f.candidate else None,
+                candidate_ddl=f.candidate.ddl() if f.candidate else None,
+            )
+            for f in d.findings
+        ],
+        candidates=[str(c) for c in d.candidates],
+        candidates_ddl=[c.ddl() for c in d.candidates],
+        rewrite_hint=d.rewrite_hint,
+        plan=d.plan,
+    )
