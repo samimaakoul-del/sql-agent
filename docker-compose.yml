@@ -94,6 +94,24 @@ services:
       db:
         condition: service_healthy
 
+  # --- Évaluation C1 à C6 (lancée à la demande) ---
+  #   docker compose run --rm evaluate            -> results/resultats_L2.md
+  #   docker compose run --rm evaluate --label L3
+  evaluate:
+    build: .
+    profiles: ["demo"]
+    entrypoint: ["python", "-W", "ignore", "-m", "sql_agent.evaluation", "--out", "/app/results"]
+    command: ["--label", "L2"]
+    user: root   # pour écrire dans le dossier results/ monté depuis le PC
+    environment:
+      DATABASE_URL: postgresql://agent_ro:agent_ro@db:5432/shop        # l'agent : lecture seule
+      WORKLOAD_DATABASE_URL: postgresql://admin:admin@db:5432/shop     # trafic + vérif. de la base
+    volumes:
+      - ./results:/app/results
+    depends_on:
+      db:
+        condition: service_healthy
+
   # --- Interface web ---
   ui:
     build: .

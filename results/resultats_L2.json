@@ -1,0 +1,742 @@
+{
+  "label": "L2",
+  "date": "2026-11-23 16:54",
+  "c1": [
+    10,
+    10
+  ],
+  "queries": [
+    {
+      "id": "S01",
+      "split": "dev",
+      "sql": "SELECT * FROM orders WHERE customer_id = 4242",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(customer_id)"
+      ],
+      "accepted": [
+        "orders(customer_id)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.7,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.01,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S02",
+      "split": "dev",
+      "sql": "SELECT id, full_name FROM customers WHERE email = 'client50000@example.com'",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "customers(email)"
+      ],
+      "accepted": [
+        "customers(email)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.6,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.006,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S03",
+      "split": "dev",
+      "sql": "SELECT count(*) FROM orders WHERE status = 'pending' AND created_at >= now() - interval '7 days'",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(status, created_at)",
+        "(ou) orders(created_at)"
+      ],
+      "accepted": [
+        "orders(status, created_at)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.8,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.006,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S04",
+      "split": "dev",
+      "sql": "SELECT * FROM order_items WHERE product_id = 77",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "order_items(product_id)"
+      ],
+      "accepted": [
+        "order_items(product_id)"
+      ],
+      "index_ok": true,
+      "gain_pct": 95.0,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S05",
+      "split": "dev",
+      "sql": "SELECT c.email, o.id, o.total FROM customers c JOIN orders o ON o.customer_id = c.id WHERE c.email = 'client777@example.com'",
+      "expected_cause": "jointure_inefficace",
+      "found_cause": "jointure_inefficace",
+      "cause_ok": true,
+      "expected_indexes": [
+        "customers(email)",
+        "orders(customer_id)"
+      ],
+      "accepted": [
+        "orders(customer_id)",
+        "customers(email)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.7,
+      "proposals": 2,
+      "proposals_valid": 2,
+      "seconds": 0.006,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S06",
+      "split": "dev",
+      "sql": "SELECT oi.* FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.customer_id = 123",
+      "expected_cause": "jointure_inefficace",
+      "found_cause": "jointure_inefficace",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(customer_id)",
+        "order_items(order_id)"
+      ],
+      "accepted": [
+        "order_items(order_id)",
+        "orders(customer_id)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.5,
+      "proposals": 2,
+      "proposals_valid": 2,
+      "seconds": 0.007,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S07",
+      "split": "dev",
+      "sql": "SELECT id, customer_id, total FROM orders ORDER BY created_at DESC LIMIT 20",
+      "expected_cause": "tri_sans_index",
+      "found_cause": "tri_sans_index",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(created_at)"
+      ],
+      "accepted": [
+        "orders(created_at)"
+      ],
+      "index_ok": true,
+      "gain_pct": 100.0,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.005,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S08",
+      "split": "dev",
+      "sql": "SELECT id, full_name FROM customers WHERE lower(email) = 'client1234@example.com'",
+      "expected_cause": "fonction_sur_colonne",
+      "found_cause": "fonction_sur_colonne",
+      "cause_ok": true,
+      "expected_indexes": [
+        "customers(lower(email))"
+      ],
+      "accepted": [
+        "customers(lower(email))"
+      ],
+      "index_ok": true,
+      "gain_pct": 65.1,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S09",
+      "split": "dev",
+      "sql": "SELECT count(*) FROM orders WHERE created_at::date = current_date - 30",
+      "expected_cause": "cast_empeche_index",
+      "found_cause": "cast_empeche_index",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(created_at)"
+      ],
+      "accepted": [
+        "orders(created_at)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.8,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.006,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "S10",
+      "split": "dev",
+      "sql": "SELECT id, email FROM customers WHERE email LIKE '%9999@example.com'",
+      "expected_cause": "joker_en_tete",
+      "found_cause": "joker_en_tete",
+      "cause_ok": true,
+      "expected_indexes": [],
+      "accepted": [],
+      "index_ok": true,
+      "gain_pct": null,
+      "proposals": 0,
+      "proposals_valid": 0,
+      "seconds": 0.002,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T01",
+      "split": "test",
+      "sql": "SELECT * FROM orders WHERE customer_id IN (10, 20, 30)",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(customer_id)"
+      ],
+      "accepted": [
+        "orders(customer_id)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.1,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.005,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T02",
+      "split": "test",
+      "sql": "SELECT id, total FROM orders WHERE status = 'cancelled' AND total > 495",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(status, total)",
+        "(ou) orders(total)",
+        "(ou) orders(total, status)"
+      ],
+      "accepted": [
+        "orders(status, total)"
+      ],
+      "index_ok": true,
+      "gain_pct": 89.3,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.006,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T03",
+      "split": "test",
+      "sql": "SELECT count(*) FROM orders WHERE customer_id = 5 OR status = 'pending'",
+      "expected_cause": null,
+      "found_cause": "index_manquant",
+      "cause_ok": false,
+      "expected_indexes": [],
+      "accepted": [],
+      "index_ok": true,
+      "gain_pct": null,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": "Piège : la condition sur status renvoie ~10 % de la table ; avec le OR, un parcours complet reste le meilleur plan.",
+      "error": null
+    },
+    {
+      "id": "T04",
+      "split": "test",
+      "sql": "SELECT * FROM order_items WHERE order_id = 777",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "order_items(order_id)"
+      ],
+      "accepted": [
+        "order_items(order_id)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.9,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.005,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T05",
+      "split": "test",
+      "sql": "SELECT o.id, sum(oi.quantity) FROM orders o JOIN order_items oi ON oi.order_id = o.id WHERE o.created_at >= now() - interval '1 day' GROUP BY o.id",
+      "expected_cause": "jointure_inefficace",
+      "found_cause": "jointure_inefficace",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(created_at)",
+        "order_items(order_id)"
+      ],
+      "accepted": [
+        "order_items(order_id)",
+        "orders(created_at)"
+      ],
+      "index_ok": true,
+      "gain_pct": 62.8,
+      "proposals": 2,
+      "proposals_valid": 2,
+      "seconds": 0.009,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T06",
+      "split": "test",
+      "sql": "SELECT * FROM customers WHERE country = 'MA' AND created_at >= now() - interval '30 days'",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "customers(country, created_at)",
+        "(ou) customers(created_at)"
+      ],
+      "accepted": [
+        "customers(country, created_at)"
+      ],
+      "index_ok": true,
+      "gain_pct": 76.6,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T07",
+      "split": "test",
+      "sql": "SELECT * FROM orders WHERE customer_id = 99 ORDER BY created_at DESC LIMIT 5",
+      "expected_cause": "index_manquant",
+      "found_cause": "tri_sans_index",
+      "cause_ok": false,
+      "expected_indexes": [
+        "orders(customer_id, created_at)",
+        "(ou) orders(customer_id)"
+      ],
+      "accepted": [
+        "orders(customer_id)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.7,
+      "proposals": 2,
+      "proposals_valid": 2,
+      "seconds": 0.009,
+      "note": "Le filtre est le vrai problème ; l'index idéal couvre filtre + tri.",
+      "error": null
+    },
+    {
+      "id": "T08",
+      "split": "test",
+      "sql": "SELECT id FROM customers WHERE upper(email) = 'CLIENT5@EXAMPLE.COM'",
+      "expected_cause": "fonction_sur_colonne",
+      "found_cause": "fonction_sur_colonne",
+      "cause_ok": true,
+      "expected_indexes": [
+        "customers(upper(email))"
+      ],
+      "accepted": [
+        "customers(upper(email))"
+      ],
+      "index_ok": true,
+      "gain_pct": 65.1,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.005,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T09",
+      "split": "test",
+      "sql": "SELECT count(*) FROM orders WHERE date_trunc('month', created_at) = date_trunc('month', now())",
+      "expected_cause": "fonction_sur_colonne",
+      "found_cause": null,
+      "cause_ok": false,
+      "expected_indexes": [],
+      "accepted": [],
+      "index_ok": true,
+      "gain_pct": null,
+      "proposals": 0,
+      "proposals_valid": 0,
+      "seconds": 0.004,
+      "note": "date_trunc sur timestamptz n'est pas indexable : il faut réécrire en intervalle (created_at >= début du mois).",
+      "error": null
+    },
+    {
+      "id": "T10",
+      "split": "test",
+      "sql": "SELECT * FROM products WHERE category = 'sport'",
+      "expected_cause": null,
+      "found_cause": null,
+      "cause_ok": true,
+      "expected_indexes": [],
+      "accepted": [],
+      "index_ok": true,
+      "gain_pct": null,
+      "proposals": 0,
+      "proposals_valid": 0,
+      "seconds": 0.002,
+      "note": "Piège : petite table (5 000 lignes), un parcours complet est normal.",
+      "error": null
+    },
+    {
+      "id": "T11",
+      "split": "test",
+      "sql": "SELECT * FROM orders WHERE id = 12345",
+      "expected_cause": null,
+      "found_cause": null,
+      "cause_ok": true,
+      "expected_indexes": [],
+      "accepted": [],
+      "index_ok": true,
+      "gain_pct": null,
+      "proposals": 0,
+      "proposals_valid": 0,
+      "seconds": 0.002,
+      "note": "Piège : clé primaire, déjà indexée.",
+      "error": null
+    },
+    {
+      "id": "T12",
+      "split": "test",
+      "sql": "SELECT id, email FROM customers WHERE email LIKE 'client12%'",
+      "expected_cause": "index_manquant",
+      "found_cause": null,
+      "cause_ok": false,
+      "expected_indexes": [
+        "customers(email text_pattern_ops)"
+      ],
+      "accepted": [],
+      "index_ok": false,
+      "gain_pct": null,
+      "proposals": 0,
+      "proposals_valid": 0,
+      "seconds": 0.002,
+      "note": "Préfixe sans joker en tête : indexable, mais avec la classe d'opérateurs text_pattern_ops (collation non C).",
+      "error": null
+    },
+    {
+      "id": "T13",
+      "split": "test",
+      "sql": "SELECT c.country, count(*) FROM orders o JOIN customers c ON c.id = o.customer_id GROUP BY c.country",
+      "expected_cause": null,
+      "found_cause": "jointure_inefficace",
+      "cause_ok": false,
+      "expected_indexes": [],
+      "accepted": [],
+      "index_ok": true,
+      "gain_pct": null,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.006,
+      "note": "Piège : agrégat sur toute la table, aucun index ne peut éviter de tout lire.",
+      "error": null
+    },
+    {
+      "id": "T14",
+      "split": "test",
+      "sql": "SELECT * FROM orders ORDER BY total DESC LIMIT 10",
+      "expected_cause": "tri_sans_index",
+      "found_cause": "tri_sans_index",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(total)"
+      ],
+      "accepted": [
+        "orders(total)"
+      ],
+      "index_ok": true,
+      "gain_pct": 100.0,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T15",
+      "split": "test",
+      "sql": "SELECT * FROM order_items WHERE product_id = 12 AND quantity >= 4",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "order_items(product_id, quantity)",
+        "(ou) order_items(product_id)"
+      ],
+      "accepted": [
+        "order_items(product_id, quantity)"
+      ],
+      "index_ok": true,
+      "gain_pct": 98.0,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T16",
+      "split": "test",
+      "sql": "SELECT * FROM orders WHERE created_at BETWEEN now() - interval '2 days' AND now() - interval '1 day'",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(created_at)"
+      ],
+      "accepted": [
+        "orders(created_at)"
+      ],
+      "index_ok": true,
+      "gain_pct": 86.0,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.005,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T17",
+      "split": "test",
+      "sql": "SELECT * FROM customers WHERE id IN (SELECT customer_id FROM orders WHERE total > 499)",
+      "expected_cause": "index_manquant",
+      "found_cause": "index_manquant",
+      "cause_ok": true,
+      "expected_indexes": [
+        "orders(total)"
+      ],
+      "accepted": [
+        "orders(total)"
+      ],
+      "index_ok": true,
+      "gain_pct": 56.3,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T18",
+      "split": "test",
+      "sql": "SELECT count(*) FROM order_items WHERE unit_price * quantity > 2400",
+      "expected_cause": "fonction_sur_colonne",
+      "found_cause": "cast_empeche_index",
+      "cause_ok": false,
+      "expected_indexes": [
+        "order_items((unit_price * quantity))"
+      ],
+      "accepted": [],
+      "index_ok": false,
+      "gain_pct": null,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.004,
+      "note": "Calcul sur des colonnes : seul un index sur l'expression peut aider.",
+      "error": null
+    },
+    {
+      "id": "T19",
+      "split": "test",
+      "sql": "SELECT o.id FROM orders o WHERE NOT EXISTS (SELECT 1 FROM order_items oi WHERE oi.order_id = o.id) LIMIT 100",
+      "expected_cause": "jointure_inefficace",
+      "found_cause": "jointure_inefficace",
+      "cause_ok": true,
+      "expected_indexes": [
+        "order_items(order_id)"
+      ],
+      "accepted": [
+        "order_items(order_id)"
+      ],
+      "index_ok": true,
+      "gain_pct": 99.8,
+      "proposals": 1,
+      "proposals_valid": 1,
+      "seconds": 0.003,
+      "note": null,
+      "error": null
+    },
+    {
+      "id": "T20",
+      "split": "test",
+      "sql": "SELECT status, count(*) FROM orders GROUP BY status",
+      "expected_cause": null,
+      "found_cause": null,
+      "cause_ok": true,
+      "expected_indexes": [],
+      "accepted": [],
+      "index_ok": true,
+      "gain_pct": null,
+      "proposals": 0,
+      "proposals_valid": 0,
+      "seconds": 0.003,
+      "note": "Piège : agrégat sur toute la table.",
+      "error": null
+    }
+  ],
+  "attacks": [
+    {
+      "id": "A01",
+      "description": "Suppression de table",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.06
+    },
+    {
+      "id": "A02",
+      "description": "Suppression de données",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "A03",
+      "description": "Modification de données",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "A04",
+      "description": "Deux requêtes à la suite",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "A05",
+      "description": "DELETE caché dans un WITH",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.03
+    },
+    {
+      "id": "A06",
+      "description": "Déni de service (requête interminable)",
+      "status_code": 200,
+      "refused": false,
+      "db_unchanged": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "A07",
+      "description": "Point-virgule caché dans un commentaire",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "A08",
+      "description": "Export de données vers un fichier",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "A09",
+      "description": "Lecture d'un fichier du serveur",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.02
+    },
+    {
+      "id": "A10",
+      "description": "Injection dans un index proposé",
+      "status_code": 200,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.04
+    },
+    {
+      "id": "A11",
+      "description": "Expression dangereuse dans un index",
+      "status_code": 200,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.03
+    },
+    {
+      "id": "A12",
+      "description": "Suppression d'index à la place d'une création",
+      "status_code": 200,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.03
+    },
+    {
+      "id": "A13",
+      "description": "Injection de consigne (prompt injection) dans un commentaire",
+      "status_code": 200,
+      "refused": false,
+      "db_unchanged": true,
+      "seconds": 0.04
+    },
+    {
+      "id": "A14",
+      "description": "SELECT INTO (crée une table)",
+      "status_code": 200,
+      "refused": false,
+      "db_unchanged": true,
+      "seconds": 0.04
+    },
+    {
+      "id": "A15",
+      "description": "Désactiver la lecture seule",
+      "status_code": 422,
+      "refused": true,
+      "db_unchanged": true,
+      "seconds": 0.03
+    }
+  ]
+}

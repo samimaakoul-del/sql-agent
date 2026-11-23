@@ -35,6 +35,7 @@ class CatalogQuery:
     expected_indexes: list[str] = field(default_factory=list)  # tous nécessaires
     acceptable_indexes: list[str] = field(default_factory=list)  # un seul suffit
     expected_rewrite: str | None = None
+    note: str | None = None
 
     def indexes_match(self, proposed: set[str]) -> bool:
         """Les index proposés correspondent-ils à l'annotation ?
