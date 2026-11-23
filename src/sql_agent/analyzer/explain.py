@@ -12,6 +12,7 @@ from psycopg import sql
 
 from sql_agent.analyzer import rules
 from sql_agent.analyzer.models import Diagnosis, TableInfo
+from sql_agent.analyzer.rewrite import rewrite_cast_date
 
 Connection = psycopg.Connection[tuple[Any, ...]]
 
@@ -99,11 +100,10 @@ def analyze(conn: Connection, query: str) -> Diagnosis:
     tables = table_info(conn, set(rules.relations(plan).values()))
     findings = rules.diagnose(plan, tables)
     cause = rules.primary_cause(findings)
-    hint = (
-        "Remplacer « colonne::date = jour » par « colonne >= jour AND colonne < jour + 1 »."
-        if cause == "cast_empeche_index"
-        else None
-    )
+    hint = rewritten = None
+    if cause == "cast_empeche_index":
+        hint = "Remplacer « colonne::date = jour » par « colonne >= jour AND colonne < jour + 1 »."
+        rewritten = rewrite_cast_date(analyzed)
     return Diagnosis(
         query=query,
         analyzed_query=analyzed,
@@ -112,5 +112,6 @@ def analyze(conn: Connection, query: str) -> Diagnosis:
         findings=findings,
         candidates=rules.candidates(findings),
         rewrite_hint=hint,
+        rewritten_query=rewritten,
         plan=plan,
     )

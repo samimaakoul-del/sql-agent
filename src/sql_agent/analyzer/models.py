@@ -50,4 +50,5 @@ class Diagnosis:
     findings: list[Finding] = field(default_factory=list)
     candidates: list[IndexCandidate] = field(default_factory=list)
     rewrite_hint: str | None = None
+    rewritten_query: str | None = None  # réécriture automatique équivalente, si possible
     plan: dict[str, Any] = field(default_factory=dict)
